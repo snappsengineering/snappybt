@@ -34,6 +34,7 @@ public final class SnappyBTCentral: @unchecked Sendable {
     }
 
     public var state: SnappyBTState { storage.withLock { $0.state } }
+    public var isScanning: Bool { storage.withLock { $0.scanning } }
     public var connectedPeripherals: [UUID] {
         storage.withLock { $0.connected.sorted { $0.uuidString < $1.uuidString } }
     }
