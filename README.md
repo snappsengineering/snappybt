@@ -1,7 +1,7 @@
 # snappyBT
 
-[![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg)](https://swift.org)
-[![Platforms](https://img.shields.io/badge/platforms-iOS%2018%20%7C%20macOS%2015-lightgrey.svg)](https://github.com/snappsengineering/snappyBT/releases)
+[![Swift](https://img.shields.io/badge/Swift-6.2-orange.svg)](https://swift.org)
+[![Platforms](https://img.shields.io/badge/platforms-iOS%2026%20%7C%20macOS%2026-lightgrey.svg)](https://github.com/snappsengineering/snappyBT/releases)
 [![CI](https://github.com/snappsengineering/snappyBT/actions/workflows/ci.yml/badge.svg)](https://github.com/snappsengineering/snappyBT/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -12,7 +12,7 @@ Small-payload Bluetooth LE: a **peripheral** (advertise and receive) and a **cen
 **1. Add the package** — in `Package.swift` or Xcode (**File → Add Package Dependencies**), pin the tag for your minimum OS ([VERSIONING.md](VERSIONING.md)):
 
 ```swift
-.package(url: "https://github.com/snappsengineering/snappyBT.git", exact: "18.0.0")
+.package(url: "https://github.com/snappsengineering/snappyBT.git", exact: "26.0.0")
 ```
 
 Prefer `exact:` for reproducible builds. For bleeding edge, use `branch: "develop"`.
