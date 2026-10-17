@@ -5,8 +5,8 @@ import PackageDescription
 let package = Package(
     name: "SnappyBT",
     platforms: [
-        .iOS(.v16),
-        .macOS(.v13)
+        .iOS(.v18),
+        .macOS(.v15)
     ],
     products: [
         .library(name: "SnappyBT", targets: ["SnappyBT"]),
