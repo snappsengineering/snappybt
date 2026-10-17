@@ -49,7 +49,7 @@ jobs:
 
     needs: commit_gate
     if: needs.commit_gate.outputs.skip != 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -79,7 +79,7 @@ jobs:
 
     needs: commit_gate
     if: needs.commit_gate.outputs.skip != 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
@@ -90,14 +90,14 @@ jobs:
 
     needs: commit_gate
     if: needs.commit_gate.outputs.skip != 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: iOS
-            device: iPhone 17
+            device: iPhone 18
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Test on simulator
@@ -106,7 +106,7 @@ jobs:
           DEVICE: ${{ matrix.device }}
         run: |
           xcrun simctl list devices available -j > devices.json
-          UDID=$(python3 - devices.json "$PLATFORM" "$DEVICE" <<'PY'
+          RES=$(python3 - devices.json "$PLATFORM" "$DEVICE" <<'PY'
           import json, sys
           path, platform, prefix = sys.argv[1:4]
           devices = json.load(open(path))["devices"]
@@ -114,39 +114,73 @@ jobs:
               return key.rsplit(".", 1)[-1].split("-")  # SimRuntime.iOS-26-5 -> [iOS, 26, 5]
           def version(key):
               return tuple(int(p) for p in parts(key)[1:] if p.isdigit())
+          def os_label(key):
+              ver = parts(key)
+              return ".".join(ver[1:3]) if len(ver) >= 3 else ver[1]
+          def emit(key, d):
+              print(f"{d['udid']}\t{d['name']}\t{os_label(key)}")
+              sys.exit(0)
           for key in sorted((k for k in devices if parts(k)[0] == platform), key=version, reverse=True):
               for d in devices[key]:
                   if d.get("isAvailable", True) and d["name"] == prefix:
-                      print(d["udid"])
-                      sys.exit(0)
+                      emit(key, d)
           for key in sorted((k for k in devices if parts(k)[0] == platform), key=version, reverse=True):
               for d in devices[key]:
                   if d.get("isAvailable", True) and d["name"].startswith(prefix):
-                      print(d["udid"])
-                      sys.exit(0)
+                      emit(key, d)
           PY
           )
+          UDID=$(echo "$RES" | cut -f1)
+          SIM_NAME=$(echo "$RES" | cut -f2)
+          SIM_OS=$(echo "$RES" | cut -f3)
           if [ -z "$UDID" ]; then echo "No available $DEVICE simulator for $PLATFORM"; exit 1; fi
-          echo "Using simulator $UDID"
+          echo "Using simulator $SIM_NAME ($UDID) OS=$SIM_OS"
+          if [ "$PLATFORM" = "watchOS" ]; then
+            xcrun simctl list pairs available -j > pairs.json
+            PHONE=$(python3 - pairs.json "$UDID" <<'PY'
+          import json, sys
+          pairs_doc = json.load(open(sys.argv[1]))
+          watch = sys.argv[2]
+          pairs = pairs_doc.get("pairs") or []
+          if isinstance(pairs, dict):
+              pairs = list(pairs.values())
+          for p in pairs:
+              w = (p.get("watch") or {})
+              if w.get("udid") == watch:
+                  ph = p.get("phone") or {}
+                  u = ph.get("udid") or ""
+                  if u:
+                      print(u)
+                  break
+          PY
+            )
+            if [ -n "$PHONE" ]; then
+              echo "Booting paired iPhone $PHONE"
+              xcrun simctl boot "$PHONE" 2>/dev/null || true
+              xcrun simctl bootstatus "$PHONE" -b
+            fi
+          fi
+          xcrun simctl boot "$UDID" 2>/dev/null || true
+          xcrun simctl bootstatus "$UDID" -b
           xcodebuild test -scheme SnappyBT \
-            -destination "id=$UDID" \
+            -destination "platform=$PLATFORM Simulator,name=$SIM_NAME,OS=$SIM_OS" \
             CODE_SIGNING_ALLOWED=NO
   example:
     name: Build Example app
 
     needs: commit_gate
     if: needs.commit_gate.outputs.skip != 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Build SnappyBTDemo
         env:
           PLATFORM: iOS
-          DEVICE: iPhone 17
+          DEVICE: iPhone 18
         run: |
           xcrun simctl list devices available -j > devices.json
-          UDID=$(python3 - devices.json "$PLATFORM" "$DEVICE" <<'PY'
+          RES=$(python3 - devices.json "$PLATFORM" "$DEVICE" <<'PY'
           import json, sys
           path, platform, prefix = sys.argv[1:4]
           devices = json.load(open(path))["devices"]
@@ -154,31 +188,40 @@ jobs:
               return key.rsplit(".", 1)[-1].split("-")  # SimRuntime.iOS-26-5 -> [iOS, 26, 5]
           def version(key):
               return tuple(int(p) for p in parts(key)[1:] if p.isdigit())
+          def os_label(key):
+              ver = parts(key)
+              return ".".join(ver[1:3]) if len(ver) >= 3 else ver[1]
+          def emit(key, d):
+              print(f"{d['udid']}\t{d['name']}\t{os_label(key)}")
+              sys.exit(0)
           for key in sorted((k for k in devices if parts(k)[0] == platform), key=version, reverse=True):
               for d in devices[key]:
                   if d.get("isAvailable", True) and d["name"] == prefix:
-                      print(d["udid"])
-                      sys.exit(0)
+                      emit(key, d)
           for key in sorted((k for k in devices if parts(k)[0] == platform), key=version, reverse=True):
               for d in devices[key]:
                   if d.get("isAvailable", True) and d["name"].startswith(prefix):
-                      print(d["udid"])
-                      sys.exit(0)
+                      emit(key, d)
           PY
           )
+          UDID=$(echo "$RES" | cut -f1)
+          SIM_NAME=$(echo "$RES" | cut -f2)
+          SIM_OS=$(echo "$RES" | cut -f3)
           if [ -z "$UDID" ]; then echo "No available $DEVICE simulator for $PLATFORM"; exit 1; fi
-          echo "Using simulator $UDID"
+          echo "Using simulator $SIM_NAME ($UDID) OS=$SIM_OS"
+          xcrun simctl boot "$UDID" 2>/dev/null || true
+          xcrun simctl bootstatus "$UDID" -b
           xcodebuild build \
             -project Example/SnappyBTDemo.xcodeproj \
             -scheme SnappyBTDemo \
-            -destination "id=$UDID" \
+            -destination "platform=$PLATFORM Simulator,name=$SIM_NAME,OS=$SIM_OS" \
             CODE_SIGNING_ALLOWED=NO
   api-check:
     name: API breaking changes
 
     needs: commit_gate
     if: needs.commit_gate.outputs.skip != 'true'
-    runs-on: macos-26
+    runs-on: xcode-27
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
