@@ -86,6 +86,16 @@ final class CentralTests: XCTestCase {
         XCTAssertTrue(driver.scans.isEmpty)
     }
 
+    func testIsScanningTracksActiveScan() {
+        XCTAssertFalse(central.isScanning)
+        central.startScanning()
+        XCTAssertFalse(central.isScanning)
+        driver.emit(.stateChanged(.poweredOn))
+        XCTAssertTrue(central.isScanning)
+        central.stopScanning()
+        XCTAssertFalse(central.isScanning)
+    }
+
     func testStateChangedCallback() {
         let seen = Recorder<SnappyBTState>()
         central.onStateChanged = { seen.add($0) }

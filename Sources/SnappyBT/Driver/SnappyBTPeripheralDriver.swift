@@ -19,6 +19,6 @@ public protocol SnappyBTPeripheralDriver: AnyObject, Sendable {
 
 // MARK: - SnappyBTLinkSecuring
 
-public protocol SnappyBTLinkSecuring: AnyObject {
+public protocol SnappyBTLinkSecuring: AnyObject, Sendable {
     var requireEncryptedLink: Bool { get set }
 }

@@ -15,7 +15,7 @@ Each commit is **buildable** at its floor. Higher-line commits only change manif
 ## Swift Package Manager
 
 ```swift
-.package(url: "https://github.com/snappsengineering/snappyBT.git", exact: "26.0.0")
+.package(url: "https://github.com/snappsengineering/snappyBT.git", exact: "27.0.0")
 ```
 
 | Tag | Minimum platforms |
@@ -23,11 +23,16 @@ Each commit is **buildable** at its floor. Higher-line commits only change manif
 | `16.0` | iOS 16, macOS 13 |
 | `18.0` | iOS 18, macOS 15 |
 | `26.0` | iOS 26, macOS 26 |
+| `27.0` | iOS 27, macOS 27 |
 
 
 ## Bleeding edge
 
 - **`branch: "develop"`**
+
+## `feature/os-27` (pre-merge)
+
+Until **`27.0`** is tagged on **`develop`**, the **`feature/os-27`** branch holds the **27** manifest (Swift **6.4**, **`.v27`** platforms), **`RUNNER=xcode-27`** CI, and passive library updates when sources are touched. Merge only after a green **GitHub Actions** run on **`xcode-27`**.
 
 ## Patches
 

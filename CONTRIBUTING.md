@@ -7,7 +7,9 @@ swift build
 swift test --enable-code-coverage
 ```
 
-Toolchain depends on the OS floor of the commit you are on — see [VERSIONING.md](VERSIONING.md). The `26.0` tag expects Swift 6.2+ and Xcode 26+.
+Toolchain depends on the OS floor of the commit you are on — see [VERSIONING.md](VERSIONING.md). The `27.0` tag expects Swift 6.4+ and Xcode 27+.
+
+Integration branch **`develop`** stays on shipped tags until a floor bump merges. **`feature/os-27`** holds Swift **6.4**, **`.v27`** platforms, passive source updates when touched, and **`RUNNER=xcode-27`** CI — merge only after a green **`xcode-27`** Actions run (no `27.0` tag until runner gate passes).
 
 ## Rules
 

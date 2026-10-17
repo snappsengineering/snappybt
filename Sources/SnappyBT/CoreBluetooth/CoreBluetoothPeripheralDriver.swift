@@ -22,6 +22,8 @@ public final class CoreBluetoothPeripheralDriver: NSObject, SnappyBTPeripheralDr
         set { handler.withLock { $0 = newValue } }
     }
 
+    private func emit(_ event: SnappyBTPeripheralDriverEvent) { onEvent?(event) }
+
     public func startAdvertising(serviceUUID: String, receiveCharacteristicUUID: String, localName: String?) {
         let encrypted = requireEncryptedLink
         queue.async {
@@ -54,14 +56,14 @@ public final class CoreBluetoothPeripheralDriver: NSObject, SnappyBTPeripheralDr
 
 extension CoreBluetoothPeripheralDriver: CBPeripheralManagerDelegate {
     public func peripheralManagerDidUpdateState(_ peripheral: CBPeripheralManager) {
-        onEvent?(.stateChanged(SnappyBTState(peripheral.state)))
+        emit(.stateChanged(SnappyBTState(peripheral.state)))
     }
 
     public func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
         let manager = UncheckedSendable(value: peripheral)
         for (index, request) in requests.enumerated() {
             let box = UncheckedSendable(value: request)
-            onEvent?(.received(request.value ?? Data(), from: request.central.identifier, respond: { accepted in
+            emit(.received(request.value ?? Data(), from: request.central.identifier, respond: { accepted in
                 guard index == 0 else { return }
                 manager.value.respond(to: box.value, withResult: accepted ? .success : .invalidAttributeValueLength)
             }))

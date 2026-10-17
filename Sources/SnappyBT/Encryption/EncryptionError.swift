@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - EncryptionError
 
-public enum EncryptionError: LocalizedError {
+public enum EncryptionError: LocalizedError, @unchecked Sendable {
 
     // MARK: - Cases
 
